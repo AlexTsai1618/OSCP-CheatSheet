@@ -8,7 +8,6 @@ A structured set of checklists to guide enumeration, exploitation, post-exploita
 
 | Task | Notes / Artifacts |
 | :--- | :--- |
-| [ ] Confirm target scope, IPs, and allowed techniques. | |
 | [ ] Perform host discovery (e.g., `sudo nmap -sn <cidr>`, `arp-scan`). | |
 | [ ] Run comprehensive TCP scan (`nmap -sC -sV -p- <target>`). | |
 | [ ] Scan top UDP ports if permitted. | |
@@ -21,13 +20,14 @@ A structured set of checklists to guide enumeration, exploitation, post-exploita
 | [ ] Gather system info (`systeminfo`, `uname -a`, `hostnamectl`). | |
 | [ ] Document potential vulnerabilities or misconfigurations for exploitation. | |
 
+
 ---
 
 ## Exploitation Checklist
 
 | Task | Notes / Artifacts |
 | :--- | :--- |
-| [ ] Rank findings by impact and feasibility; keep a per-host service → exploit matrix. | |
+| [ ] Check application configs and files for hardcoded credentials or secrets. Through local file inclusion. | |
 | [ ] Chase quick wins: reuse harvested creds, test defaults, dump exposed secrets. | |
 | [ ] Check local services (`ss -tulnp`) and tunnel high-value ports if needed. | |
 | [ ] Sweep for fast priv-esc paths (SUID/SGID, scheduled tasks, writable configs). | |
