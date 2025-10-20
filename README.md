@@ -27,16 +27,14 @@ A structured set of checklists to guide enumeration, exploitation, post-exploita
 
 | Task | Notes / Artifacts |
 | :--- | :--- |
-| [ ] Prioritize vulnerabilities (CVEs, misconfigurations, weak creds). | |
-| [ ] Validate exploit preconditions (service version, access level). | |
-| [ ] Prepare exploit PoC or module (Metasploit/manual/custom). | |
-| [ ] Configure payloads and callback listeners; note ports used. | |
-| [ ] Execute exploit in a controlled manner; monitor for errors/timeouts. | |
-| [ ] Capture proof of execution (shell access, responses, screenshots). | |
-| [ ] Stabilize shell (upgrade to PTY, use `rlwrap`, `python -c 'pty.spawn'`). | |
-| [ ] Upload required tools (linpeas, winPEAS, PowerView, etc.). | |
-| [ ] Enumerate credentials, tokens, or sensitive files post foothold. | |
-| [ ] Record successful and failed exploit attempts for reporting. | |
+| [ ] Rank findings by impact and feasibility; keep a per-host service → exploit matrix. | |
+| [ ] Chase quick wins: reuse harvested creds, test defaults, dump exposed secrets. | |
+| [ ] Check local services (`ss -tulnp`) and tunnel high-value ports if needed. | |
+| [ ] Sweep for fast priv-esc paths (SUID/SGID, scheduled tasks, writable configs). | |
+| [ ] Confirm exploit prerequisites (version, access, dependencies) and prep payload/listener. | |
+| [ ] Launch exploits with ready stagers, monitor output, and time-box retries. | |
+| [ ] Stabilize footholds (PTY upgrade) and stage essential tooling. | |
+| [ ] Capture proofs, note artifacts, and log successes/failures for reporting. | |
 
 ---
 
