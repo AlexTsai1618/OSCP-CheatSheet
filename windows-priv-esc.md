@@ -138,3 +138,4 @@ Quick-reference checklist for hunting Windows privilege escalation paths, coveri
 - JuicyPotatoNG: https://github.com/ohpe/juicy-potato
 - Windows Exploit Suggester NG: https://github.com/bitsadmin/wesng
 - Seatbelt: https://github.com/GhostPack/Seatbelt
+- Kerbrute https://github.com/ropnop/kerbrute
